@@ -1,0 +1,33 @@
+version: '2'
+services:
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    volumes:
+      - "/home/ubuntu/certs:/etc/nginx/certs:ro"
+      - "/etc/nginx/vhost.d"
+      - "/usr/share/nginx/html"
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+    ports:
+      - "80:80"
+      - "443:443"
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt
+    volumes:
+      - "/home/ubuntu/certs:/etc/nginx/certs:rw"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    volumes_from:
+      - nginx-proxy
+
+  nginx:
+    image: nginx
+    container_name: gratitude-nginx
+    environment:
+      - VIRTUAL_HOST=gratitude.pl
+      - LETSENCRYPT_HOST=gratitude.pl
+      - LETSENCRYPT_EMAIL=slawek@gratitude.pl
+    volumes:
+      - "/var/www/gratitude.pl:/usr/share/nginx/html"
